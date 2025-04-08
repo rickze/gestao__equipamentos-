@@ -1,0 +1,14 @@
+{
+    "admin": {
+        "password": "admin123",
+        "role": "Administrador"
+    },
+    "utilizador": {
+        "password": "util123",
+        "role": "Utilizador"
+    },
+    "visual": {
+        "password": "visual123",
+        "role": "Visualizador"
+    }
+}
