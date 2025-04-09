@@ -1,149 +1,96 @@
 
 import streamlit as st
+import json
 import pandas as pd
-from auth import load_users, authenticate, update_password
-from utils import load_data, save_data
+from pathlib import Path
 
-st.set_page_config(page_title="Gestão de Equipamentos", layout="wide")
-users = load_users()
+CONFIG_PATH = Path("config")
 
-if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
-    st.session_state.username = ''
-    st.session_state.role = ''
-    st.session_state.first_login = False
+def load_json(file):
+    with open(CONFIG_PATH / file, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-def login():
-    st.title("Login")
-    username = st.text_input("Utilizador")
-    password = st.text_input("Palavra-passe", type="password")
-    if st.button("Entrar"):
-        role, first_login = authenticate(username, password, users)
-        if role:
-            st.session_state.logged_in = True
-            st.session_state.username = username
-            st.session_state.role = role
-            st.session_state.first_login = first_login
-            st.rerun()
-        else:
-            st.error("Credenciais inválidas")
+def save_json(file, data):
+    with open(CONFIG_PATH / file, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
 
-if not st.session_state.logged_in:
-    login()
-    st.stop()
+st.set_page_config("Gestão de Equipamentos", layout="wide")
+st.sidebar.title("Menu")
+menu = st.sidebar.radio("Ir para", ["Equipamentos", "Usuários", "Configuração"])
 
-if st.session_state.first_login:
-    st.warning("Altere a palavra-passe no primeiro login.")
-    with st.form("pw_update"):
-        new_pw = st.text_input("Nova palavra-passe", type="password")
-        confirm_pw = st.text_input("Confirmar palavra-passe", type="password")
-        if st.form_submit_button("Alterar"):
-            if new_pw == confirm_pw and len(new_pw) >= 4:
-                update_password(st.session_state.username, new_pw, users)
-                st.success("Palavra-passe alterada.")
-                st.session_state.first_login = False
-                st.rerun()
-            else:
-                st.error("Erro na confirmação ou tamanho da palavra-passe.")
-    st.stop()
+if menu == "Configuração":
+    st.title("🛠️ Configuração do Sistema")
 
-st.sidebar.success(f"Utilizador: {st.session_state.username} ({st.session_state.role})")
-tabs = st.tabs(['Dados Gerais', 'Organização', 'Dimensões', 'Tecnologia', 'Gestão', 'Documentos', 'Financeira'])
+    config_tab = st.selectbox("Escolher tabela para configurar:", ["Categorias", "Dados Base", "Intervalos"])
 
+    if config_tab == "Categorias":
+        st.subheader("Categorias de Equipamento")
+        categorias = load_json("categorias.json")
+        df = pd.DataFrame(categorias)
 
-with tabs[0]:
-    st.subheader("Dados Gerais")
-    df = load_data("data/dados_gerais.csv", ['Número', 'Nome', 'Categoria', 'Tipo', 'Classe', 'Matrícula', 'Descrição Detalhada'])
-    st.dataframe(df)
-    if st.session_state.role != "Visualizador":
-        with st.form("form_dados_gerais"):
-            inputs = [st.text_input(col) for col in ['Número', 'Nome', 'Categoria', 'Tipo', 'Classe', 'Matrícula', 'Descrição Detalhada']]
-            if st.form_submit_button("Guardar"):
-                df.loc[len(df)] = inputs
-                save_data("data/dados_gerais.csv", df)
-                st.success("Registo adicionado com sucesso.")
+        st.dataframe(df)
+
+        with st.form("add_cat"):
+            st.markdown("### Adicionar nova categoria")
+            codigo = st.text_input("Código da Categoria")
+            descricao = st.text_input("Descrição")
+            idioma = st.selectbox("Idioma", ["PT", "EN", "ES", "FR"])
+            if st.form_submit_button("Adicionar"):
+                categorias.append({"codigo": codigo, "descricao": descricao, "idioma": idioma})
+                save_json("categorias.json", categorias)
+                st.success("Categoria adicionada.")
                 st.rerun()
 
+    elif config_tab == "Dados Base":
+        st.subheader("Dados Base das Categorias")
+        dados = load_json("dados_base.json")
+        df = pd.DataFrame(dados)
+        st.dataframe(df)
 
-with tabs[1]:
-    st.subheader("Organização")
-    df = load_data("data/organização.csv", ['Número', 'Empresa', 'Localização', 'Departamento', 'Centro de Custo'])
-    st.dataframe(df)
-    if st.session_state.role != "Visualizador":
-        with st.form("form_organização"):
-            inputs = [st.text_input(col) for col in ['Número', 'Empresa', 'Localização', 'Departamento', 'Centro de Custo']]
-            if st.form_submit_button("Guardar"):
-                df.loc[len(df)] = inputs
-                save_data("data/organização.csv", df)
-                st.success("Registo adicionado com sucesso.")
+        with st.form("add_dbase"):
+            st.markdown("### Adicionar ligação de categoria")
+            categoria = st.text_input("Categoria")
+            grupo = st.text_input("Grupo de Campos")
+            intervalo_i = st.text_input("Intervalo Interno")
+            intervalo_e = st.text_input("Intervalo Externo (opcional)")
+            if st.form_submit_button("Adicionar"):
+                entrada = {
+                    "categoria": categoria,
+                    "grupo": grupo,
+                    "intervalo_interno": intervalo_i
+                }
+                if intervalo_e:
+                    entrada["intervalo_externo"] = intervalo_e
+                dados.append(entrada)
+                save_json("dados_base.json", dados)
+                st.success("Ligação adicionada.")
                 st.rerun()
 
+    elif config_tab == "Intervalos":
+        st.subheader("Intervalos de Numeração")
+        intervalos = load_json("intervalos.json")
+        df = pd.DataFrame(intervalos)
+        st.dataframe(df)
 
-with tabs[2]:
-    st.subheader("Dimensões")
-    df = load_data("data/dimensões.csv", ['Número', 'Peso', 'Altura', 'Largura', 'Comprimento'])
-    st.dataframe(df)
-    if st.session_state.role != "Visualizador":
-        with st.form("form_dimensões"):
-            inputs = [st.text_input(col) for col in ['Número', 'Peso', 'Altura', 'Largura', 'Comprimento']]
-            if st.form_submit_button("Guardar"):
-                df.loc[len(df)] = inputs
-                save_data("data/dimensões.csv", df)
-                st.success("Registo adicionado com sucesso.")
+        with st.form("add_intv"):
+            st.markdown("### Adicionar novo intervalo")
+            codigo = st.text_input("Código")
+            externo = st.checkbox("É externo?")
+            inicio = st.number_input("Início", min_value=1)
+            fim = st.number_input("Fim", min_value=inicio)
+            proximo = st.number_input("Próximo número", min_value=inicio, value=inicio)
+            if st.form_submit_button("Adicionar"):
+                intervalos.append({
+                    "codigo": codigo,
+                    "externo": externo,
+                    "inicio": int(inicio),
+                    "fim": int(fim),
+                    "proximo": int(proximo)
+                })
+                save_json("intervalos.json", intervalos)
+                st.success("Intervalo adicionado.")
                 st.rerun()
 
-
-with tabs[3]:
-    st.subheader("Tecnologia")
-    df = load_data("data/tecnologia.csv", ['Número', 'Fabricante', 'Modelo', 'Número de Série', 'VIN', 'Ano Fabrico', 'Tipo Combustível'])
-    st.dataframe(df)
-    if st.session_state.role != "Visualizador":
-        with st.form("form_tecnologia"):
-            inputs = [st.text_input(col) for col in ['Número', 'Fabricante', 'Modelo', 'Número de Série', 'VIN', 'Ano Fabrico', 'Tipo Combustível']]
-            if st.form_submit_button("Guardar"):
-                df.loc[len(df)] = inputs
-                save_data("data/tecnologia.csv", df)
-                st.success("Registo adicionado com sucesso.")
-                st.rerun()
-
-
-with tabs[4]:
-    st.subheader("Gestão")
-    df = load_data("data/gestão.csv", ['Número', 'Data Início', 'Estado', 'Responsável', 'Data Desativação'])
-    st.dataframe(df)
-    if st.session_state.role != "Visualizador":
-        with st.form("form_gestão"):
-            inputs = [st.text_input(col) for col in ['Número', 'Data Início', 'Estado', 'Responsável', 'Data Desativação']]
-            if st.form_submit_button("Guardar"):
-                df.loc[len(df)] = inputs
-                save_data("data/gestão.csv", df)
-                st.success("Registo adicionado com sucesso.")
-                st.rerun()
-
-
-with tabs[5]:
-    st.subheader("Documentos")
-    df = load_data("data/documentos.csv", ['Número', 'Tipo Documento', 'Descrição Documento', 'Ficheiro'])
-    st.dataframe(df)
-    if st.session_state.role != "Visualizador":
-        with st.form("form_documentos"):
-            inputs = [st.text_input(col) for col in ['Número', 'Tipo Documento', 'Descrição Documento', 'Ficheiro']]
-            if st.form_submit_button("Guardar"):
-                df.loc[len(df)] = inputs
-                save_data("data/documentos.csv", df)
-                st.success("Registo adicionado com sucesso.")
-                st.rerun()
-
-
-with tabs[6]:
-    st.subheader("Financeira")
-    df = load_data("data/financeira.csv", ['Número', 'Data Aquisição', 'Valor', 'Moeda', 'Ativo Fixo', 'Fim Garantia', 'Fornecedor'])
-    st.dataframe(df)
-    if st.session_state.role != "Visualizador":
-        with st.form("form_financeira"):
-            inputs = [st.text_input(col) for col in ['Número', 'Data Aquisição', 'Valor', 'Moeda', 'Ativo Fixo', 'Fim Garantia', 'Fornecedor']]
-            if st.form_submit_button("Guardar"):
-                df.loc[len(df)] = inputs
-                save_data("data/financeira.csv", df)
-                st.success("Registo adicionado com sucesso.")
-                st.rerun()
+else:
+    st.title("🛠️ Área ainda em desenvolvimento")
+    st.info("Apenas o menu de Configuração está funcional nesta versão.")
