@@ -117,5 +117,12 @@
         "inicio": 100000001,
         "fim": 199999999,
         "proximo": 100000001
+    },
+    {
+        "codigo": "18",
+        "externo": false,
+        "inicio": 70002001,
+        "fim": 70002999,
+        "proximo": 70002001
     }
 ]
