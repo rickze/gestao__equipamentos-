@@ -58,5 +58,10 @@
         "codigo": "K",
         "idioma": "PT",
         "descricao": "Equipamentos acess\u00f3rios (Materiais/Cofragem/Andaimes etc.)"
+    },
+    {
+        "codigo": "Z",
+        "idioma": "PT",
+        "descricao": "Tese Categoria Z"
     }
 ]
