@@ -65,5 +65,10 @@
         "categoria": "K",
         "grupo": "004",
         "intervalo_interno": "17"
+    },
+    {
+        "categoria": "Z",
+        "grupo": "002",
+        "intervalo_interno": "18"
     }
 ]
