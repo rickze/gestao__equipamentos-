@@ -1,15 +1,12 @@
-<<<<<<< HEAD
 import streamlit as st
 import pandas as pd
 from auth import load_users, authenticate, update_password, add_user, delete_user, save_users
 from pathlib import Path
-=======
 
 import streamlit as st
 import pandas as pd
 from auth import load_users, authenticate, update_password
 from utils import load_data, save_data
->>>>>>> f387d02934759f739ea849e67344de78c7bd2682
 
 st.set_page_config(page_title="Gestão de Equipamentos", layout="wide")
 users = load_users()
@@ -102,7 +99,7 @@ elif menu == "Administração de Utilizadores":
         delete_user(user_to_delete, users)
         st.success(f"Utilizador '{user_to_delete}' removido.")
         st.rerun()
-=======
+
     st.warning("Altere a palavra-passe no primeiro login.")
     with st.form("pw_update"):
         new_pw = st.text_input("Nova palavra-passe", type="password")
@@ -217,4 +214,3 @@ with tabs[6]:
                 save_data("data/financeira.csv", df)
                 st.success("Registo adicionado com sucesso.")
                 st.rerun()
->>>>>>> f387d02934759f739ea849e67344de78c7bd2682
