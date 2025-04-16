@@ -37,7 +37,6 @@ if not st.session_state.logged_in:
     st.stop()
 
 if st.session_state.first_login:
-<<<<<<< HEAD
     st.warning("É necessário alterar a palavra-passe no primeiro acesso.")
     with st.form("update_pw_form"):
         new_pw = st.text_input("Nova palavra-passe", type="password")
