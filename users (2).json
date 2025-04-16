@@ -1,0 +1,17 @@
+{
+    "admin": {
+        "password": "becf77f3ec82a43422b7712134d1860e3205c6ce778b08417a7389b43f2b4661",
+        "role": "Administrador",
+        "first_login": false
+    },
+    "utilizador": {
+        "password": "c0fa0e5f7030c102759f44d126ea90d10e444b7d8fb3cc930b9574d85943cc88",
+        "role": "Utilizador",
+        "first_login": true
+    },
+    "visual": {
+        "password": "2b627fca21406f02e065ad7987bc7641a6a9a61b3902f852f67b733e2792727b",
+        "role": "Visualizador",
+        "first_login": true
+    }
+}
