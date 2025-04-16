@@ -1,4 +1,5 @@
 import json
+<<<<<<< HEAD
 import hashlib
 import os
 
@@ -48,3 +49,15 @@ def delete_user(username, users):
         save_users(users)
         return True
     return False
+=======
+
+def load_users(filepath='users.json'):
+    with open(filepath, 'r') as f:
+        return json.load(f)
+
+def authenticate(username, password, users):
+    user = users.get(username)
+    if user and user['password'] == password:
+        return user['role']
+    return None
+>>>>>>> f387d02934759f739ea849e67344de78c7bd2682
